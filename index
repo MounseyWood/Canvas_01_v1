@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scarf Design Studio</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #222;
+            color: #fff;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* UI Panel (Left) */
+        #ui-panel {
+            width: 280px;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            background-color: #333;
+            border-right: 1px solid #444;
+            flex-shrink: 0;
+        }
+        
+        #ui-panel h1 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .tool-section {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 0;
+            user-select: none;
+        }
+        
+        .section-header h2 {
+            font-size: 1rem;
+            margin: 0;
+            color: #ccc;
+        }
+        
+        .section-toggle {
+            color: #888;
+            transition: transform 0.3s;
+        }
+        
+        .section-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .section-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .section-content.collapsed {
+            max-height: 0;
+        }
+        
+        /* Tool Buttons */
+        .button-row {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        button {
+            background-color: #444;
+            color: #fff;
+            border: 1px solid #555;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #555;
+        }
+        
+        button.active {
+            background-color: #696;
+            border-color: #8b8;
+        }
+        
+        /* Nib Selection */
+        .nib-container {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .nib-btn {
+            width: 75px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #444;
+            border: 1px solid #555;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            padding: 5px;
+        }
+        
+        .nib-btn:hover {
+            background-color: #555;
+        }
+        
+        .nib-btn.active {
+            background-color: #696;
+            border-color: #8b8;
+        }
+        
+        .nib-icon {
+            width: 30px;
+            height: 30px;
+            margin-bottom: 5px;
+        }
+        
+        /* Colour Palette */
+        .colour-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        
+        .colour-swatch {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid #444;
+            transition: transform 0.1s, border-color 0.1s;
+        }
+        
+        .colour-swatch:hover {
+            transform: scale(1.1);
+        }
+        
+        .colour-swatch.active {
+            border-color: #fff;
+        }
+        
+        /* Sliders */
+        .slider-container {
+            margin-top: 12px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            background-color: #444;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #88a;
+            cursor: pointer;
+        }
+        
+        /* ASCII Controls */
+        .ascii-controls {
+            margin-top: 12px;
+        }
+        
+        .ascii-preview {
+            background-color: #222;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 10px;
+            line-height: 1.2;
+            margin-top: 12px;
+            height: 80px;
+            overflow: hidden;
+            white-space: pre;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        select, input[type="text"] {
+            width: 100%;
+            padding: 6px 8px;
+            background-color: #444;
+            color: #fff;
+            border: 1px solid #555;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-family: inherit;
+        }
+        
+        /* Canvas Container (Right) */
+        #canvas-container {
+            flex-grow: 1;
+            background-color: #111;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 300px;
+        }
+        
+        #drawing-canvas {
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.7);
+            border: 5px solid #444;
+        }
+        
+        /* Canvas Controls */
+        .canvas-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            gap: 5px;
+            z-index: 100;
+        }
+        
+        .zoom-btn {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            padding: 0;
+        }
+        
+        /* Cursor */
+        .brush-cursor {
+            position: absolute;
+            pointer-events: none;
+            border: 1px solid #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+        
+        /* Overview Thumbnail */
+        .canvas-overview {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border: 1px solid #444;
+            width: 100px;
+            height: 100px;
+            overflow: hidden;
+            border-radius: 4px;
+            z-index: 100;
+        }
+        
+        .overview-box {
+            position: absolute;
+            border: 1px solid #88a;
+            background-color: rgba(136, 136, 170, 0.2);
+            pointer-events: none;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 180px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 4px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            bottom: 125%;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Debug info */
+        #debug-info {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-size: 10px;
+            color: #ccc;
+            background-color: rgba(0,0,0,0.7);
+            padding: 5px;
+            border-radius: 3px;
+            max-width: 300px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <!-- UI Panel (Left) -->
+    <div id="ui-panel">
+        <h1>Scarf Design Studio</h1>
+        
+        <!-- Drawing Tools -->
+        <div class="tool-section">
+            <div class="section-header" onclick="toggleSection('drawing-tools')">
+                <h2>Drawing Tools</h2>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content" id="drawing-tools">
+                <div class="button-row">
+                    <button id="brushToolBtn" class="active">Brush</button>
+                    <button id="eraserToolBtn">Eraser</button>
+                    <button id="panToolBtn">Pan</button>
+                </div>
+                
+                <!-- Nib Selection -->
+                <div class="nib-container">
+                    <div id="circleNibBtn" class="nib-btn active">
+                        <svg class="nib-icon" viewBox="0 0 30 30">
+                            <circle cx="15" cy="15" r="10" fill="currentColor" />
+                        </svg>
+                        <span>Circle</span>
+                    </div>
+                    <div id="squareNibBtn" class="nib-btn">
+                        <svg class="nib-icon" viewBox="0 0 30 30">
+                            <rect x="5" y="5" width="20" height="20" fill="currentColor" />
+                        </svg>
+                        <span>Square</span>
+                    </div>
+                    <div id="italicNibBtn" class="nib-btn">
+                        <svg class="nib-icon" viewBox="0 0 30 30">
+                            <rect x="7" y="4" width="16" height="22" transform="rotate(30 15 15)" fill="currentColor" />
+                        </svg>
+                        <span>Italic</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Colour Palette -->
+        <div class="tool-section">
+            <div class="section-header" onclick="toggleSection('colour-palette')">
+                <h2>Colour Palette</h2>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content" id="colour-palette">
+                <div class="button-row">
+                    <button id="webSafeBtn" class="active">Web Safe</button>
+                    <button id="risoBtn">RISO Ink</button>
+                </div>
+                
+                <div class="colour-palette" id="webSafePalette">
+                    <div class="colour-swatch active" style="background-color: #000000;" data-color="#000000"></div>
+                    <div class="colour-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF"></div>
+                    <div class="colour-swatch" style="background-color: #0000FF;" data-color="#0000FF"></div>
+                    <div class="colour-swatch" style="background-color: #FF0000;" data-color="#FF0000"></div>
+                    <div class="colour-swatch" style="background-color: #00FF00;" data-color="#00FF00"></div>
+                    <div class="colour-swatch" style="background-color: #FFFF00;" data-color="#FFFF00"></div>
+                    <div class="colour-swatch" style="background-color: #00FFFF;" data-color="#00FFFF"></div>
+                    <div class="colour-swatch" style="background-color: #FF00FF;" data-color="#FF00FF"></div>
+                </div>
+                
+                <div class="colour-palette" id="risoPalette" style="display: none;">
+                    <div class="colour-swatch" style="background-color: #0078BF;" data-color="#0078BF"></div>
+                    <div class="colour-swatch" style="background-color: #00A95C;" data-color="#00A95C"></div>
+                    <div class="colour-swatch" style="background-color: #FF48B0;" data-color="#FF48B0"></div>
+                    <div class="colour-swatch" style="background-color: #FF665E;" data-color="#FF665E"></div>
+                    <div class="colour-swatch" style="background-color: #FFE800;" data-color="#FFE800"></div>
+                    <div class="colour-swatch" style="background-color: #FF8B00;" data-color="#FF8B00"></div>
+                    <div class="colour-swatch" style="background-color: #9D2768;" data-color="#9D2768"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Brush Settings -->
+        <div class="tool-section">
+            <div class="section-header" onclick="toggleSection('brush-settings')">
+                <h2>Brush Settings</h2>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content" id="brush-settings">
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Size:</span>
+                        <span id="brushSizeValue">10px</span>
+                    </div>
+                    <input type="range" id="brushSizeSlider" min="1" max="50" value="10">
+                </div>
+            </div>
+        </div>
+        
+        <!-- ASCII Texturing -->
+        <div class="tool-section">
+            <div class="section-header" onclick="toggleSection('ascii-texturing')">
+                <h2>ASCII Texturing</h2>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content" id="ascii-texturing">
+                <div class="ascii-controls">
+                    <select id="charsetSelect">
+                        <option value="standard">Standard (@%#*+=-:. )</option>
+                        <option value="simple">Simple (#. )</option>
+                        <option value="complex">Complex ($@B%8&WM#*...)</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                    <input type="text" id="customCharset" placeholder="Enter custom characters" style="display: none;">
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Text Size:</span>
+                            <span id="textSizeValue">12px</span>
+                        </div>
+                        <input type="range" id="textSizeSlider" min="5" max="30" value="12">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Spacing:</span>
+                            <span id="textSpacingValue">15px</span>
+                        </div>
+                        <input type="range" id="textSpacingSlider" min="5" max="50" value="15">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <div class="slider-label">
+                            <span>Line Height:</span>
+                            <span id="lineHeightValue">1.2</span>
+                        </div>
+                        <input type="range" id="lineHeightSlider" min="0.8" max="2.0" step="0.1" value="1.2">
+                    </div>
+                    
+                    <div class="ascii-preview" id="asciiPreview">
+                        @%#*+=-:.
+                    </div>
+                    
+                    <div class="tooltip">
+                        <button id="fillShapeBtn" style="margin-top: 8px; width: 100%;">Fill Selection with ASCII</button>
+                        <span class="tooltiptext">Hold SHIFT and draw to create a selection first</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Project Management -->
+        <div class="tool-section">
+            <div class="section-header" onclick="toggleSection('project-management')">
+                <h2>Project</h2>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content" id="project-management">
+                <div class="button-row" style="margin-bottom: 8px;">
+                    <button id="undoBtn">Undo</button>
+                    <button id="redoBtn">Redo</button>
+                    <button id="clearBtn">Clear</button>
+                </div>
+                <div class="button-row">
+                    <button id="saveBtn">Save</button>
+                    <button id="loadBtn">Load</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Export -->
+        <div class="tool-section">
+            <div class="section-header" onclick="toggleSection('export-options')">
+                <h2>Export</h2>
+                <span class="section-toggle">▼</span>
+            </div>
+            <div class="section-content collapsed" id="export-options">
+                <div class="button-row" style="margin-bottom: 8px;">
+                    <button id="exportPngBtn">PNG</button>
+                    <button id="exportJpgBtn">JPEG</button>
+                    <button id="exportTiffBtn">TIFF</button>
+                </div>
+                <button id="exportLayersBtn" style="width: 100%;">Export Colour Layers</button>
+            </div>
+        </div>
+        
+        <!-- Help Text -->
+        <div class="tool-section">
+            <div class="section-header" onclick="toggleSection('help-text')">
+                <h2>Help</h2>
+                <span class="section-toggle collapsed">▼</span>
+            </div>
+            <div class="section-content collapsed" id="help-text">
+                <p style="font-size: 0.9em; line-height: 1.4;">
+                    <strong>Tips:</strong><br>
+                    • Hold <strong>SHIFT</strong> whilst drawing to create a selection<br>
+                    • Use mouse wheel to zoom in/out<br>
+                    • Middle mouse button or pan tool to move canvas<br>
+                    • The overview in the top-right shows your position<br>
+                    • Export at high resolution for printing on scarves
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas Container (Right) -->
+    <div id="canvas-container">
+        <canvas id="drawing-canvas" width="600" height="600"></canvas>
+        
+        <!-- Custom brush cursor -->
+        <div class="brush-cursor" id="brushCursor"></div>
+        
+        <!-- Canvas overview thumbnail -->
+        <div class="canvas-overview" id="canvasOverview">
+            <div class="overview-box" id="overviewBox"></div>
+        </div>
+        
+        <!-- Zoom controls -->
+        <div class="canvas-controls">
+            <button id="zoomInBtn" class="zoom-btn">+</button>
+            <button id="zoomResetBtn" class="zoom-btn">R</button>
+            <button id="zoomOutBtn" class="zoom-btn">-</button>
+        </div>
+        
+        <!-- Debug information -->
+        <div id="debug-info"></div>
+    </div>
+        
+    <script>
+        // Global variables for drawing app
+        var scarfApp = {
+            // Drawing Settings
+            brushColor: '#000000',
+            brushSize: 10,
+            currentTool: 'brush', // 'brush', 'eraser', or 'pan'
+            currentNib: 'circle', // 'circle', 'square', or 'italic'
+            
+            // ASCII settings
+            textSize: 12,
+            textSpacing: 15,
+            lineHeight: 1.2,
+            charsetType: 'standard',
+            customChars: '',
+            
+            // Pan and zoom
+            zoomLevel: 1,
+            panOffset: { x: 0, y: 0 },
+            isPanning: false,
+            lastPanPos: { x: 0, y: 0 },
+            
+            // Drawing data
+            actions: [],  // Store all drawing actions
+            currentStroke: null,
+            isDrawing: false,
+            
+            // Selection for ASCII fill
+            selectionPoints: [],
+            isSelecting: false,
+            
+            // History for undo/redo
+            history: [],
+            historyIndex: -1,
+            
+            // Canvas elements
+            canvas: null,
+            ctx: null,
+            
+            // UI elements
+            brushCursor: null,
+            overviewBox: null,
+            asciiPreview: null,
+            debugInfo: null,
+            
+            // Initialize app when the DOM is loaded
+            init: function() {
+                // Setup debugging
+                this.debugInfo = document.getElementById('debug-info');
+                this.log('Initializing Scarf Design Studio');
+                
+                // Get UI elements
+                this.brushCursor = document.getElementById('brushCursor');
+                this.overviewBox = document.getElementById('overviewBox');
+                this.asciiPreview = document.getElementById('asciiPreview');
+                
+                // Set up UI controls
+                this.setupUIControls();
+                this.log('UI controls set up');
+                
+                // Initialize the canvas
+                this.initCanvas();
+                
+                // Create overview
+                this.createOverviewCanvas();
+                
+                // Update ASCII preview
+                this.updateAsciiPreview();
+                
+                // Add demo stroke
+                this.addDemoStroke();
+            },
+            
+            // Simple wrapper for logging
+            log: function(message) {
+                console.log(message);
+                if (this.debugInfo) {
+                    this.debugInfo.textContent = message;
+                }
+            },
+            
+            // Initialize the canvas
+            initCanvas: function() {
+                // Get the canvas and context
+                this.canvas = document.getElementById('drawing-canvas');
+                
+                if (!this.canvas) {
+                    this.log('ERROR: Canvas element not found!');
+                    return;
+                }
+                
+                try {
+                    this.ctx = this.canvas.getContext('2d');
+                    
+                    // Set the initial background color
+                    this.ctx.fillStyle = '#FFFFFF';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    
+                    // Draw welcome text
+                    this.ctx.font = '24px Arial';
+                    this.ctx.fillStyle = '#333';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText('Scarf Design Studio', this.canvas.width/2, this.canvas.height/2 - 20);
+                    this.ctx.font = '16px Arial';
+                    this.ctx.fillText('Canvas Initialized', this.canvas.width/2, this.canvas.height/2 + 20);
+                    
+                    this.log('Canvas initialized');
+                    
+                    // Set up mouse event handlers
+                    var self = this; // Store reference to the app object
+                    
+                    this.canvas.addEventListener('mousedown', function(e) {
+                        self.onMouseDown(e);
+                    });
+                    
+                    this.canvas.addEventListener('mousemove', function(e) {
+                        self.onMouseMove(e);
+                    });
+                    
+                    this.canvas.addEventListener('mouseup', function(e) {
+                        self.onMouseUp(e);
+                    });
+                    
+                    this.canvas.addEventListener('wheel', function(e) {
+                        self.onMouseWheel(e);
+                    });
+                    
+                    // Initial history state
+                    this.saveToHistory();
+                } catch (e) {
+                    this.log('ERROR initializing canvas: ' + e.message);
+                }
+            },
+            
+            // Add demo stroke to show canvas is working
+            addDemoStroke: function() {
+                var demoStroke = {
+                    type: 'stroke',
+                    color: '#3498db',
+                    size: 5,
+                    nib: 'circle',
+                    points: [
+                        { x: 100, y: 100 },
+                        { x: 150, y: 150 },
+                        { x: 200, y: 200 },
+                        { x: 250, y: 150 },
+                        { x: 300, y: 100 }
+                    ]
+                };
+                
+                this.actions.push(demoStroke);
+                this.saveToHistory();
+                this.redrawCanvas();
+                this.log('Demo stroke added');
+            },
+            
+            // Mouse event handlers
+            onMouseDown: function(e) {
+                // Get coordinates relative to canvas
+                var rect = this.canvas.getBoundingClientRect();
+                var x = e.clientX - rect.left;
+                var y = e.clientY - rect.top;
+                
+                if (e.button === 1 || this.currentTool === 'pan') {
+                    // Middle mouse or pan tool
+                    this.isPanning = true;
+                    this.lastPanPos = { x: x, y: y };
+                    return;
+                }
+                
+                // Convert to canvas coordinates considering zoom and pan
+                var canvasCoords = this.screenToCanvasCoords(x, y);
+                
+                if (e.shiftKey) {
+                    // Start selection
+                    this.isSelecting = true;
+                    this.selectionPoints = [canvasCoords];
+                } else if (e.button === 0) {
+                    // Start drawing
+                    this.isDrawing = true;
+                    this.currentStroke = {
+                        type: 'stroke',
+                        color: this.currentTool === 'eraser' ? '#FFFFFF' : this.brushColor,
+                        size: this.brushSize,
+                        nib: this.currentNib,
+                        points: [canvasCoords]
+                    };
+                }
+                
+                // Redraw
+                this.redrawCanvas();
+            },
+            
+            onMouseMove: function(e) {
+                // Get coordinates relative to canvas
+                var rect = this.canvas.getBoundingClientRect();
+                var x = e.clientX - rect.left;
+                var y = e.clientY - rect.top;
+                
+                if (this.isPanning) {
+                    // Handle panning
+                    this.panOffset.x += (x - this.lastPanPos.x) / this.zoomLevel;
+                    this.panOffset.y += (y - this.lastPanPos.y) / this.zoomLevel;
+                    this.lastPanPos = { x: x, y: y };
+                    this.redrawCanvas();
+                    return;
+                }
+                
+                // Convert to canvas coordinates
+                var canvasCoords = this.screenToCanvasCoords(x, y);
+                
+                if (this.isSelecting) {
+                    // Add to selection
+                    this.selectionPoints.push(canvasCoords);
+                    this.redrawCanvas();
+                } else if (this.isDrawing && this.currentStroke) {
+                    // Add to current stroke
+                    this.currentStroke.points.push(canvasCoords);
+                    this.redrawCanvas();
+                }
+                
+                // Update brush cursor
+                this.updateBrushCursor(e.clientX, e.clientY);
+            },
+            
+            onMouseUp: function(e) {
+                if (this.isPanning) {
+                    this.isPanning = false;
+                    return;
+                }
+                
+                if (this.isSelecting) {
+                    this.isSelecting = false;
+                    this.redrawCanvas();
+                } else if (this.isDrawing && this.currentStroke) {
+                    // Finalize stroke
+                    if (this.currentStroke.points.length > 1) {
+                        this.actions.push(this.currentStroke);
+                        this.saveToHistory();
+                    }
+                    this.isDrawing = false;
+                    this.currentStroke = null;
+                    this.redrawCanvas();
+                }
+            },
+            
+            onMouseWheel: function(e) {
+                e.preventDefault();
+                
+                // Get coordinates relative to canvas
+                var rect = this.canvas.getBoundingClientRect();
+                var x = e.clientX - rect.left;
+                var y = e.clientY - rect.top;
+                
+                // Get mouse position before zoom
+                var beforeZoom = this.screenToCanvasCoords(x, y);
+                
+                // Change zoom level based on scroll direction
+                var zoomChange = e.deltaY < 0 ? 1.1 : 0.9;
+                this.zoomLevel = Math.min(Math.max(this.zoomLevel * zoomChange, 0.2), 5);
+                
+                // Get mouse position after zoom
+                var afterZoom = this.screenToCanvasCoords(x, y);
+                
+                // Adjust pan offset to keep mouse over the same point
+                this.panOffset.x += (afterZoom.x - beforeZoom.x);
+                this.panOffset.y += (afterZoom.y - beforeZoom.y);
+                
+                this.redrawCanvas();
+            },
+            
+            // Update brush cursor
+            updateBrushCursor: function(mouseX, mouseY) {
+                if (!this.brushCursor) return;
+                
+                if ((this.currentTool === 'brush' || this.currentTool === 'eraser')) {
+                    // Show and position cursor
+                    this.brushCursor.style.display = 'block';
+                    this.brushCursor.style.left = mouseX + 'px';
+                    this.brushCursor.style.top = mouseY + 'px';
+                    
+                    // Set cursor size
+                    var cursorSize = this.brushSize * this.zoomLevel;
+                    
+                    // Customize based on nib type
+                    if (this.currentNib === 'circle') {
+                        this.brushCursor.style.width = cursorSize + 'px';
+                        this.brushCursor.style.height = cursorSize + 'px';
+                        this.brushCursor.style.borderRadius = '50%';
+                        this.brushCursor.style.transform = 'translate(-50%, -50%)';
+                    } else if (this.currentNib === 'square') {
+                        this.brushCursor.style.width = cursorSize + 'px';
+                        this.brushCursor.style.height = cursorSize + 'px';
+                        this.brushCursor.style.borderRadius = '0';
+                        this.brushCursor.style.transform = 'translate(-50%, -50%)';
+                    } else if (this.currentNib === 'italic') {
+                        this.brushCursor.style.width = cursorSize * 0.4 + 'px';
+                        this.brushCursor.style.height = cursorSize + 'px';
+                        this.brushCursor.style.borderRadius = '0';
+                        this.brushCursor.style.transform = 'translate(-50%, -50%) rotate(30deg)';
+                    }
+                    
+                    // Set cursor colour
+                    var color = this.currentTool === 'eraser' ? '#FFFFFF' : this.brushColor;
+                    this.brushCursor.style.backgroundColor = color + '40'; // 25% opacity
+                    this.brushCursor.style.borderColor = color;
+                } else {
+                    // Hide cursor when not relevant
+                    this.brushCursor.style.display = 'none';
+                }
+            },
+            
+            // Redraw the canvas with all actions
+            redrawCanvas: function() {
+                if (!this.canvas || !this.ctx) {
+                    this.log('ERROR: Canvas or context missing in redrawCanvas');
+                    return;
+                }
+                
+                try {
+                    // Clear canvas with white background
+                    this.ctx.fillStyle = '#FFFFFF';
+                    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    
+                    // Apply transformations for zoom and pan
+                    this.ctx.save();
+                    
+                    // Transform from center
+                    this.ctx.translate(this.canvas.width/2, this.canvas.height/2);
+                    this.ctx.scale(this.zoomLevel, this.zoomLevel);
+                    this.ctx.translate(-this.canvas.width/2 + this.panOffset.x, -this.canvas.width/2 + this.panOffset.y);
+                    
+                    // Draw all actions
+                    for (var i = 0; i < this.actions.length; i++) {
+                        this.drawAction(this.actions[i]);
+                    }
+                    
+                    // Draw current stroke if active
+                    if (this.isDrawing && this.currentStroke) {
+                        this.drawAction(this.currentStroke);
+                    }
+                    
+                    // Draw selection in progress
+                    if (this.isSelecting && this.selectionPoints.length > 0) {
+                        this.drawSelection();
+                    }
+                    
+                    this.ctx.restore();
+                    
+                    // Update overview
+                    this.updateOverview();
+                } catch (e) {
+                    this.log('ERROR in redrawCanvas: ' + e.message);
+                }
+            },
+            
+            // Draw a single action
+            drawAction: function(action) {
+                if (!this.ctx) return;
+                
+                try {
+                    if (action.type === 'stroke') {
+                        this.ctx.strokeStyle = action.color;
+                        this.ctx.lineWidth = action.size;
+                        this.ctx.lineCap = 'round';
+                        this.ctx.lineJoin = 'round';
+                        
+                        if (action.nib === 'circle') {
+                            // Standard round brush
+                            if (action.points.length < 2) return;
+                            
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(action.points[0].x, action.points[0].y);
+                            
+                            for (var i = 1; i < action.points.length; i++) {
+                                this.ctx.lineTo(action.points[i].x, action.points[i].y);
+                            }
+                            
+                            this.ctx.stroke();
+                        } else if (action.nib === 'square') {
+                            // Square nib
+                            for (var i = 1; i < action.points.length; i++) {
+                                var prev = action.points[i-1];
+                                var curr = action.points[i];
+                                
+                                // Calculate direction and distance
+                                var dx = curr.x - prev.x;
+                                var dy = curr.y - prev.y;
+                                var angle = Math.atan2(dy, dx);
+                                var dist = Math.sqrt(dx*dx + dy*dy);
+                                
+                                // Draw rectangle
+                                this.ctx.save();
+                                this.ctx.translate(prev.x, prev.y);
+                                this.ctx.rotate(angle);
+                                this.ctx.fillStyle = action.color;
+                                this.ctx.fillRect(0, -action.size/2, dist, action.size);
+                                this.ctx.restore();
+                            }
+                        } else if (action.nib === 'italic') {
+                            // Italic/calligraphy nib
+                            for (var i = 1; i < action.points.length; i++) {
+                                var prev = action.points[i-1];
+                                var curr = action.points[i];
+                                
+                                // Calculate direction and angle
+                                var dx = curr.x - prev.x;
+                                var dy = curr.y - prev.y;
+                                var angle = Math.atan2(dy, dx);
+                                
+                                // Perpendicular angle
+                                var perpAngle = angle + Math.PI/2;
+                                
+                                // Calculate italic pen shape
+                                this.ctx.fillStyle = action.color;
+                                this.ctx.beginPath();
+                                
+                                // Draw a slanted quadrilateral
+                                var width = action.size / 2;
+                                
+                                // Top left (slanted)
+                                this.ctx.moveTo(
+                                    prev.x + Math.cos(perpAngle) * width * 1.5,
+                                    prev.y + Math.sin(perpAngle) * width * 1.5
+                                );
+                                
+                                // Top right
+                                this.ctx.lineTo(
+                                    prev.x - Math.cos(perpAngle) * width * 0.5,
+                                    prev.y - Math.sin(perpAngle) * width * 0.5
+                                );
+                                
+                                // Bottom right
+                                this.ctx.lineTo(
+                                    curr.x - Math.cos(perpAngle) * width * 0.5,
+                                    curr.y - Math.sin(perpAngle) * width * 0.5
+                                );
+                                
+                                // Bottom left (slanted)
+                                this.ctx.lineTo(
+                                    curr.x + Math.cos(perpAngle) * width * 1.5,
+                                    curr.y + Math.sin(perpAngle) * width * 1.5
+                                );
+                                
+                                this.ctx.closePath();
+                                this.ctx.fill();
+                            }
+                        }
+                    } else if (action.type === 'asciiFill') {
+                        // Handle ASCII text fill implementation
+                        // (This will be implemented in the next phase)
+                        
+                        // For now, just draw the shape outline
+                        this.ctx.strokeStyle = '#88a';
+                        this.ctx.lineWidth = 1;
+                        this.ctx.beginPath();
+                        
+                        if (action.shape.length > 0) {
+                            this.ctx.moveTo(action.shape[0].x, action.shape[0].y);
+                            
+                            for (var i = 1; i < action.shape.length; i++) {
+                                this.ctx.lineTo(action.shape[i].x, action.shape[i].y);
+                            }
+                            
+                            this.ctx.closePath();
+                            this.ctx.stroke();
+                        }
+                    }
+                } catch (e) {
+                    this.log('ERROR in drawAction: ' + e.message);
+                }
+            },
+            
+            // Draw the current selection
+            drawSelection: function() {
+                if (!this.ctx) return;
+                
+                try {
+                    this.ctx.strokeStyle = '#0f0';
+                    this.ctx.lineWidth = 1.5;
+                    this.ctx.beginPath();
+                    
+                    if (this.selectionPoints.length > 0) {
+                        this.ctx.moveTo(this.selectionPoints[0].x, this.selectionPoints[0].y);
+                        
+                        for (var i = 1; i < this.selectionPoints.length; i++) {
+                            this.ctx.lineTo(this.selectionPoints[i].x, this.selectionPoints[i].y);
+                        }
+                        
+                        if (this.selectionPoints.length > 2) {
+                            this.ctx.closePath();
+                        }
+                        
+                        this.ctx.stroke();
+                    }
+                } catch (e) {
+                    this.log('ERROR in drawSelection: ' + e.message);
+                }
+            },
+            
+            // Convert screen coordinates to canvas coordinates
+            screenToCanvasCoords: function(sx, sy) {
+                if (!this.canvas) return { x: 0, y: 0 };
+                
+                var x = (sx - this.canvas.width/2) / this.zoomLevel + this.canvas.width/2 - this.panOffset.x;
+                var y = (sy - this.canvas.height/2) / this.zoomLevel + this.canvas.height/2 - this.panOffset.y;
+                
+                return { x: x, y: y };
+            },
+            
+            // Create a canvas in the overview div
+            createOverviewCanvas: function() {
+                try {
+                    var overview = document.getElementById('canvasOverview');
+                    if (!overview) {
+                        this.log('ERROR: Overview container not found');
+                        return;
+                    }
+                    
+                    // Check if canvas already exists
+                    if (document.getElementById('overviewCanvas')) {
+                        this.log('Overview canvas already exists');
+                        return;
+                    }
+                    
+                    // Create a new canvas element
+                    var overviewCanvas = document.createElement('canvas');
+                    overviewCanvas.width = 100;
+                    overviewCanvas.height = 100;
+                    overviewCanvas.id = 'overviewCanvas';
+                    overview.appendChild(overviewCanvas);
+                    
+                    // Initialize with white background
+                    var octx = overviewCanvas.getContext('2d');
+                    if (!octx) {
+                        this.log('ERROR: Could not get overview canvas context');
+                        return;
+                    }
+                    
+                    octx.fillStyle = '#ffffff';
+                    octx.fillRect(0, 0, 100, 100);
+                    
+                    // Draw a border
+                    octx.strokeStyle = '#888';
+                    octx.lineWidth = 1;
+                    octx.strokeRect(0, 0, 100, 100);
+                    
+                    this.log('Overview canvas created successfully');
+                } catch (e) {
+                    this.log('ERROR in createOverviewCanvas: ' + e.message);
+                }
+            },
+            
+            // Update the overview thumbnail
+            updateOverview: function() {
+                try {
+                    var overviewCanvas = document.getElementById('overviewCanvas');
+                    if (!overviewCanvas) {
+                        this.log('Creating overview canvas...');
+                        this.createOverviewCanvas();
+                        return;
+                    }
+                    
+                    var octx = overviewCanvas.getContext('2d');
+                    if (!octx) {
+                        this.log('ERROR: Could not get overview canvas context');
+                        return;
+                    }
+                    
+                    if (!this.canvas) {
+                        this.log('ERROR: Main canvas is undefined in updateOverview');
+                        return;
+                    }
+                    
+                    // Clear overview
+                    octx.fillStyle = '#ffffff';
+                    octx.fillRect(0, 0, 100, 100);
+                    
+                    // Draw a scaled-down version of all actions
+                    var scale = 100 / this.canvas.width;
+                    
+                    // Simplified drawing for performance
+                    for (var i = 0; i < this.actions.length; i++) {
+                        var action = this.actions[i];
+                        if (action.type === 'stroke' && action.points.length > 1) {
+                            octx.strokeStyle = action.color;
+                            octx.lineWidth = 1;
+                            octx.beginPath();
+                            octx.moveTo(action.points[0].x * scale, action.points[0].y * scale);
+                            
+                            for (var j = 1; j < action.points.length; j++) {
+                                octx.lineTo(action.points[j].x * scale, action.points[j].y * scale);
+                            }
+                            
+                            octx.stroke();
+                        }
+                    }
+                    
+                    // Draw a border around the overview
+                    octx.strokeStyle = '#888';
+                    octx.lineWidth = 1;
+                    octx.strokeRect(0, 0, 100, 100);
+                    
+                    if (!this.overviewBox) {
+                        this.log('ERROR: overviewBox is undefined');
+                        return;
+                    }
+                    
+                    // Update view rectangle in overview
+                    var viewWidth = (this.canvas.width / this.zoomLevel) * scale;
+                    var viewHeight = (this.canvas.height / this.zoomLevel) * scale;
+                    var viewX = (this.canvas.width/2 - this.panOffset.x - this.canvas.width/(2*this.zoomLevel)) * scale;
+                    var viewY = (this.canvas.height/2 - this.panOffset.y - this.canvas.height/(2*this.zoomLevel)) * scale;
+                    
+                    this.overviewBox.style.width = viewWidth + 'px';
+                    this.overviewBox.style.height = viewHeight + 'px';
+                    this.overviewBox.style.left = viewX + 'px';
+                    this.overviewBox.style.top = viewY + 'px';
+                    
+                } catch (e) {
+                    this.log('ERROR in updateOverview: ' + e.message);
+                }
+            },
+            
+            // Update ASCII preview
+            updateAsciiPreview: function() {
+                if (!this.asciiPreview) return;
+                
+                try {
+                    // Get current ASCII settings
+                    var currentCharset = this.charsetType;
+                    var chars = this.getCharset(currentCharset);
+                    
+                    // Generate a sample ASCII pattern
+                    var preview = '';
+                    var rows = 5;
+                    var cols = 12;
+                    
+                    for (var i = 0; i < rows; i++) {
+                        for (var j = 0; j < cols; j++) {
+                            // Create a pattern that varies across the sample
+                            var noiseVal = (Math.sin(i/2) + Math.cos(j/3) + 2) / 4; // Simple noise approximation
+                            var charIndex = Math.floor(noiseVal * chars.length);
+                            preview += chars[Math.min(charIndex, chars.length - 1)];
+                        }
+                        preview += '\n';
+                    }
+                    
+                    // Update the preview element
+                    this.asciiPreview.textContent = preview;
+                    this.asciiPreview.style.color = this.brushColor;
+                    this.asciiPreview.style.fontSize = this.textSize + 'px';
+                    this.asciiPreview.style.lineHeight = this.lineHeight;
+                } catch (e) {
+                    this.log('ERROR in updateAsciiPreview: ' + e.message);
+                }
+            },
+            
+            // Get character set based on type
+            getCharset: function(type) {
+                try {
+                    switch (type) {
+                        case 'standard':
+                            return '@%#*+=-:. '.split('');
+                        case 'simple':
+                            return '#. '.split('');
+                        case 'complex':
+                            return '$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,"^`\'. '.split('');
+                        case 'custom':
+                            return (this.customChars || '@%#*+=-:. ').split('');
+                        default:
+                            return '@%#*+=-:. '.split('');
+                    }
+                } catch (e) {
+                    this.log('ERROR in getCharset: ' + e.message);
+                    return '@%#*+=-:. '.split('');
+                }
+            },
+            
+            // Check if point is inside polygon
+            isPointInPolygon: function(x, y, polygon) {
+                try {
+                    var inside = false;
+                    for (var i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                        var xi = polygon[i].x, yi = polygon[i].y;
+                        var xj = polygon[j].x, yj = polygon[j].y;
+                        
+                        var intersect = ((yi > y) !== (yj > y)) && 
+                            (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+                        if (intersect) inside = !inside;
+                    }
+                    return inside;
+                } catch (e) {
+                    this.log('ERROR in isPointInPolygon: ' + e.message);
+                    return false;
+                }
+            },
+            
+            // Save current state to history
+            saveToHistory: function() {
+                try {
+                    // Remove any forward history if we're in the middle
+                    if (this.historyIndex < this.history.length - 1) {
+                        this.history = this.history.slice(0, this.historyIndex + 1);
+                    }
+                    
+                    // Add current state to history
+                    this.historyIndex++;
+                    this.history.push(JSON.parse(JSON.stringify(this.actions)));
+                    
+                    // Limit history size to prevent memory issues
+                    if (this.history.length > 50) {
+                        this.history.shift();
+                        this.historyIndex--;
+                    }
+                    
+                    // Update UI buttons
+                    var undoBtn = document.getElementById('undoBtn');
+                    var redoBtn = document.getElementById('redoBtn');
+                    
+                    if (undoBtn) undoBtn.disabled = this.historyIndex <= 0;
+                    if (redoBtn) redoBtn.disabled = this.historyIndex >= this.history.length - 1;
+                    
+                    //this.log('Saved to history: ' + this.historyIndex);
+                } catch (e) {
+                    this.log('ERROR in saveToHistory: ' + e.message);
+                }
+            },
+            
+            // Undo the last action
+            undo: function() {
+                try {
+                    if (this.historyIndex > 0) {
+                        this.historyIndex--;
+                        this.actions = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+                        
+                        // Update UI buttons
+                        var undoBtn = document.getElementById('undoBtn');
+                        var redoBtn = document.getElementById('redoBtn');
+                        
+                        if (undoBtn) undoBtn.disabled = this.historyIndex <= 0;
+                        if (redoBtn) redoBtn.disabled = false;
+                        
+                        // Redraw
+                        this.redrawCanvas();
+                        
+                        this.log('Undo to history index: ' + this.historyIndex);
+                    }
+                } catch (e) {
+                    this.log('ERROR in undo: ' + e.message);
+                }
+            },
+            
+            // Redo an undone action
+            redo: function() {
+                try {
+                    if (this.historyIndex < this.history.length - 1) {
+                        this.historyIndex++;
+                        this.actions = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+                        
+                        // Update UI buttons
+                        var undoBtn = document.getElementById('undoBtn');
+                        var redoBtn = document.getElementById('redoBtn');
+                        
+                        if (redoBtn) redoBtn.disabled = this.historyIndex >= this.history.length - 1;
+                        if (undoBtn) undoBtn.disabled = false;
+                        
+                        // Redraw
+                        this.redrawCanvas();
+                        
+                        this.log('Redo to history index: ' + this.historyIndex);
+                    }
+                } catch (e) {
+                    this.log('ERROR in redo: ' + e.message);
+                }
+            },
+            
+            // Clear the canvas
+            clearCanvas: function() {
+                try {
+                    if (confirm('Are you sure you want to clear the canvas? This cannot be undone.')) {
+                        this.actions = [];
+                        this.saveToHistory();
+                        this.redrawCanvas();
+                        this.log('Canvas cleared');
+                    }
+                } catch (e) {
+                    this.log('ERROR in clearCanvas: ' + e.message);
+                }
+            },
+            
+            // Fill the current selection with ASCII art
+            fillSelectionWithAscii: function() {
+                try {
+                    if (this.selectionPoints.length < 3) {
+                        alert('Please create a selection first (hold SHIFT and draw a shape)');
+                        return;
+                    }
+                    
+                    // Create an ASCII fill action
+                    var asciiFill = {
+                        type: 'asciiFill',
+                        shape: JSON.parse(JSON.stringify(this.selectionPoints)),
+                        charset: this.charsetType,
+                        textSize: this.textSize,
+                        spacing: this.textSpacing,
+                        lineHeight: this.lineHeight,
+                        color: this.brushColor
+                    };
+                    
+                    this.actions.push(asciiFill);
+                    this.saveToHistory();
+                    
+                    // Clear selection
+                    this.selectionPoints = [];
+                    
+                    // Redraw
+                    this.redrawCanvas();
+                    
+                    this.log('ASCII fill added');
+                } catch (e) {
+                    this.log('ERROR in fillSelectionWithAscii: ' + e.message);
+                }
+            },
+            
+            // Save project to JSON
+            saveProject: function() {
+                try {
+                    var projectData = {
+                        version: 1,
+                        actions: this.actions
+                    };
+                    
+                    var dataStr = JSON.stringify(projectData);
+                    var dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                    
+                    var exportName = 'scarf_design_' + new Date().toISOString().slice(0, 10) + '.json';
+                    
+                    var linkElement = document.createElement('a');
+                    linkElement.setAttribute('href', dataUri);
+                    linkElement.setAttribute('download', exportName);
+                    linkElement.click();
+                    
+                    this.log('Project saved');
+                } catch (e) {
+                    this.log('ERROR in saveProject: ' + e.message);
+                }
+            },
+            
+            // Load project from JSON
+            loadProject: function() {
+                var self = this;
+                try {
+                    var input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.json';
+                    
+                    input.onchange = function(e) {
+                        var file = e.target.files[0];
+                        var reader = new FileReader();
+                        
+                        reader.onload = function(event) {
+                            try {
+                                var projectData = JSON.parse(event.target.result);
+                                
+                                if (projectData.actions && Array.isArray(projectData.actions)) {
+                                    self.actions = projectData.actions;
+                                    
+                                    // Reset history with loaded project
+                                    self.history = [JSON.parse(JSON.stringify(self.actions))];
+                                    self.historyIndex = 0;
+                                    
+                                    // Update UI
+                                    var undoBtn = document.getElementById('undoBtn');
+                                    var redoBtn = document.getElementById('redoBtn');
+                                    
+                                    if (undoBtn) undoBtn.disabled = true;
+                                    if (redoBtn) redoBtn.disabled = true;
+                                    
+                                    // Redraw
+                                    self.redrawCanvas();
+                                    
+                                    self.log('Project loaded');
+                                } else {
+                                    throw new Error('Invalid project file');
+                                }
+                            } catch (err) {
+                                alert('Error loading project: ' + err.message);
+                                self.log('Error loading project: ' + err.message);
+                            }
+                        };
+                        
+                        reader.readAsText(file);
+                    };
+                    
+                    input.click();
+                } catch (e) {
+                    this.log('ERROR in loadProject: ' + e.message);
+                }
+            },
+            
+            // Export image
+            exportImage: function(format) {
+                try {
+                    if (format === 'tiff') {
+                        alert('TIFF export is not directly supported in the browser. Please export as PNG and convert externally.');
+                        format = 'png';
+                    }
+                    
+                    // Create high-resolution version for export
+                    var exportCanvas = document.createElement('canvas');
+                    var EXPORT_SIZE = 7087; // ~90cm @200DPI
+                    exportCanvas.width = EXPORT_SIZE;
+                    exportCanvas.height = EXPORT_SIZE;
+                    
+                    var exportCtx = exportCanvas.getContext('2d');
+                    exportCtx.fillStyle = '#FFFFFF';
+                    exportCtx.fillRect(0, 0, EXPORT_SIZE, EXPORT_SIZE);
+                    
+                    // Scale factor for high-res export
+                    var scale = EXPORT_SIZE / this.canvas.width;
+                    
+                    this.log('Exporting image at scale: ' + scale);
+                    
+                    // Redraw all actions on the export canvas
+                    for (var i = 0; i < this.actions.length; i++) {
+                        var action = this.actions[i];
+                        if (action.type === 'stroke') {
+                            exportCtx.strokeStyle = action.color;
+                            exportCtx.lineWidth = action.size * scale;
+                            exportCtx.lineCap = 'round';
+                            exportCtx.lineJoin = 'round';
+                            
+                            if (action.nib === 'circle') {
+                                exportCtx.beginPath();
+                                if (action.points.length > 0) {
+                                    exportCtx.moveTo(action.points[0].x * scale, action.points[0].y * scale);
+                                    for (var j = 1; j < action.points.length; j++) {
+                                        exportCtx.lineTo(action.points[j].x * scale, action.points[j].y * scale);
+                                    }
+                                }
+                                exportCtx.stroke();
+                            }
+                            // Other nib types would be implemented similarly
+                        }
+                        // ASCII fill would be implemented similarly
+                    }
+                    
+                    // Convert to data URL
+                    var dataUrl = exportCanvas.toDataURL('image/' + format);
+                    
+                    // Create download link
+                    var link = document.createElement('a');
+                    link.download = 'scarf_design_' + EXPORT_SIZE + 'px.' + format;
+                    link.href = dataUrl;
+                    link.click();
+                    
+                    this.log('Image exported as: ' + format);
+                } catch (e) {
+                    this.log('ERROR in exportImage: ' + e.message);
+                }
+            },
+            
+            // Export colour layers
+            exportLayers: function() {
+                alert('Colour layer export will be implemented in the next phase.');
+                this.log('Colour layer export requested (not yet implemented)');
+            },
+            
+            // Setup all UI control event listeners
+            setupUIControls: function() {
+                var self = this;
+                
+                try {
+                    // Tool selection
+                    document.getElementById('brushToolBtn').addEventListener('click', function() { self.setTool('brush'); });
+                    document.getElementById('eraserToolBtn').addEventListener('click', function() { self.setTool('eraser'); });
+                    document.getElementById('panToolBtn').addEventListener('click', function() { self.setTool('pan'); });
+                    
+                    // Nib selection
+                    document.getElementById('circleNibBtn').addEventListener('click', function() { self.setNib('circle'); });
+                    document.getElementById('squareNibBtn').addEventListener('click', function() { self.setNib('square'); });
+                    document.getElementById('italicNibBtn').addEventListener('click', function() { self.setNib('italic'); });
+                    
+                    // Colour palette selection
+                    document.getElementById('webSafeBtn').addEventListener('click', function() { self.setPalette('webSafe'); });
+                    document.getElementById('risoBtn').addEventListener('click', function() { self.setPalette('riso'); });
+                    
+                    // Colour swatches
+                    var swatches = document.querySelectorAll('.colour-swatch');
+                    swatches.forEach(function(swatch) {
+                        swatch.addEventListener('click', function() {
+                            self.brushColor = swatch.getAttribute('data-color');
+                            self.setActiveSwatchInPalette(swatch);
+                            self.updateAsciiPreview(); // Update preview with new colour
+                        });
+                    });
+                    
+                    // Brush size slider
+                    var brushSizeSlider = document.getElementById('brushSizeSlider');
+                    brushSizeSlider.addEventListener('input', function() {
+                        self.brushSize = parseInt(brushSizeSlider.value);
+                        document.getElementById('brushSizeValue').textContent = self.brushSize + 'px';
+                    });
+                    
+                    // ASCII controls
+                    var charsetSelect = document.getElementById('charsetSelect');
+                    var customCharset = document.getElementById('customCharset');
+                    
+                    charsetSelect.addEventListener('change', function() {
+                        self.charsetType = charsetSelect.value;
+                        if (self.charsetType === 'custom') {
+                            customCharset.style.display = 'block';
+                        } else {
+                            customCharset.style.display = 'none';
+                        }
+                        self.updateAsciiPreview();
+                    });
+                    
+                    customCharset.addEventListener('input', function() {
+                        self.customChars = customCharset.value;
+                        self.updateAsciiPreview();
+                    });
+                    
+                    // Text size and spacing sliders
+                    document.getElementById('textSizeSlider').addEventListener('input', function() {
+                        self.textSize = parseInt(document.getElementById('textSizeSlider').value);
+                        document.getElementById('textSizeValue').textContent = self.textSize + 'px';
+                        self.updateAsciiPreview();
+                    });
+                    
+                    document.getElementById('textSpacingSlider').addEventListener('input', function() {
+                        self.textSpacing = parseInt(document.getElementById('textSpacingSlider').value);
+                        document.getElementById('textSpacingValue').textContent = self.textSpacing + 'px';
+                        self.updateAsciiPreview();
+                    });
+                    
+                    // Line height slider
+                    document.getElementById('lineHeightSlider').addEventListener('input', function() {
+                        self.lineHeight = parseFloat(document.getElementById('lineHeightSlider').value);
+                        document.getElementById('lineHeightValue').textContent = self.lineHeight.toFixed(1);
+                        self.updateAsciiPreview();
+                    });
+                    
+                    // Fill shape button
+                    document.getElementById('fillShapeBtn').addEventListener('click', function() { self.fillSelectionWithAscii(); });
+                    
+                    // Project management
+                    document.getElementById('undoBtn').addEventListener('click', function() { self.undo(); });
+                    document.getElementById('redoBtn').addEventListener('click', function() { self.redo(); });
+                    document.getElementById('clearBtn').addEventListener('click', function() { self.clearCanvas(); });
+                    document.getElementById('saveBtn').addEventListener('click', function() { self.saveProject(); });
+                    document.getElementById('loadBtn').addEventListener('click', function() { self.loadProject(); });
+                    
+                    // Export buttons
+                    document.getElementById('exportPngBtn').addEventListener('click', function() { self.exportImage('png'); });
+                    document.getElementById('exportJpgBtn').addEventListener('click', function() { self.exportImage('jpg'); });
+                    document.getElementById('exportTiffBtn').addEventListener('click', function() { self.exportImage('tiff'); });
+                    document.getElementById('exportLayersBtn').addEventListener('click', function() { self.exportLayers(); });
+                    
+                    // Zoom controls
+                    document.getElementById('zoomInBtn').addEventListener('click', function() {
+                        self.zoomLevel = Math.min(self.zoomLevel * 1.2, 5);
+                        self.redrawCanvas();
+                    });
+                    
+                    document.getElementById('zoomOutBtn').addEventListener('click', function() {
+                        self.zoomLevel = Math.max(self.zoomLevel / 1.2, 0.2);
+                        self.redrawCanvas();
+                    });
+                    
+                    document.getElementById('zoomResetBtn').addEventListener('click', function() {
+                        self.zoomLevel = 1;
+                        self.panOffset = { x: 0, y: 0 };
+                        self.redrawCanvas();
+                    });
+                    
+                    // Disable undo/redo buttons initially
+                    var undoBtn = document.getElementById('undoBtn');
+                    var redoBtn = document.getElementById('redoBtn');
+                    if (undoBtn) undoBtn.disabled = true;
+                    if (redoBtn) redoBtn.disabled = true;
+                    
+                    this.log('UI controls set up');
+                } catch (e) {
+                    this.log('ERROR in setupUIControls: ' + e.message);
+                }
+            },
+            
+            // Set the active drawing tool
+            setTool: function(tool) {
+                try {
+                    this.currentTool = tool;
+                    
+                    // Update UI
+                    document.getElementById('brushToolBtn').classList.remove('active');
+                    document.getElementById('eraserToolBtn').classList.remove('active');
+                    document.getElementById('panToolBtn').classList.remove('active');
+                    
+                    document.getElementById(tool + 'ToolBtn').classList.add('active');
+                    
+                    this.log('Tool set to: ' + tool);
+                } catch (e) {
+                    this.log('ERROR in setTool: ' + e.message);
+                }
+            },
+            
+            // Set the active nib type
+            setNib: function(nib) {
+                try {
+                    this.currentNib = nib;
+                    
+                    // Update UI
+                    document.getElementById('circleNibBtn').classList.remove('active');
+                    document.getElementById('squareNibBtn').classList.remove('active');
+                    document.getElementById('italicNibBtn').classList.remove('active');
+                    
+                    document.getElementById(nib + 'NibBtn').classList.add('active');
+                    
+                    this.log('Nib set to: ' + nib);
+                } catch (e) {
+                    this.log('ERROR in setNib: ' + e.message);
+                }
+            },
+            
+            // Set the active colour palette
+            setPalette: function(palette) {
+                try {
+                    // Update UI
+                    document.getElementById('webSafeBtn').classList.remove('active');
+                    document.getElementById('risoBtn').classList.remove('active');
+                    document.getElementById(palette + 'Btn').classList.add('active');
+                    
+                    // Show/hide appropriate palette
+                    document.getElementById('webSafePalette').style.display = palette === 'webSafe' ? 'flex' : 'none';
+                    document.getElementById('risoPalette').style.display = palette === 'riso' ? 'flex' : 'none';
+                    
+                    // Reset active colour to first in palette
+                    var firstSwatch = document.querySelector('#' + palette + 'Palette .colour-swatch');
+                    if (firstSwatch) {
+                        this.brushColor = firstSwatch.getAttribute('data-color');
+                        this.setActiveSwatchInPalette(firstSwatch);
+                        this.updateAsciiPreview();
+                    }
+                    
+                    this.log('Palette set to: ' + palette);
+                } catch (e) {
+                    this.log('ERROR in setPalette: ' + e.message);
+                }
+            },
+            
+            // Set active swatch in current palette
+            setActiveSwatchInPalette: function(swatch) {
+                try {
+                    // Remove active class from all swatches
+                    var allSwatches = document.querySelectorAll('.colour-swatch');
+                    for (var i = 0; i < allSwatches.length; i++) {
+                        allSwatches[i].classList.remove('active');
+                    }
+                    
+                    // Add active class to selected swatch
+                    swatch.classList.add('active');
+                } catch (e) {
+                    this.log('ERROR in setActiveSwatchInPalette: ' + e.message);
+                }
+            }
+        };
+        
+        // UI Element for progressive disclosure
+        function toggleSection(sectionId) {
+            var content = document.getElementById(sectionId);
+            var toggle = content.parentElement.querySelector('.section-toggle');
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                toggle.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                toggle.classList.add('collapsed');
+            }
+        }
+        
+        // Initialize the app when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            scarfApp.init();
+        });
+    </script>
+</body>
+</html>
